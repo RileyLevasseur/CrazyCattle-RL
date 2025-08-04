@@ -5,3 +5,4 @@ Pillow
 gym
 stable-baselines3
 tensorboard
+pygetwindow
