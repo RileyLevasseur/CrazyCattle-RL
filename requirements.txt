@@ -1,2 +1,2 @@
 pygetwindow
-pywin32
+pydirectinput

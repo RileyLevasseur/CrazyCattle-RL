@@ -6,43 +6,42 @@
 import subprocess
 import pygetwindow as gw
 import time
-import win32gui
-import win32api
-import win32con
+import pydirectinput
 
-def step(action, duration = 0.05):
-    # Find the correct window
-    hwnd = win32gui.FindWindow(None, "CrazyCattle3D (DEBUG)")
-    win32gui.SetForegroundWindow(hwnd)
-    key_code = 0x57
+def step(forward_or_back, left_or_right, duration = 0.05):
+    # The executable uses a framework that is incompatible with Win32 controls, so pyautogui it is
+    # Update: pyautogui doesn't work either, but pydirectinput does
 
-    # Send an event to the window corresponding to the given action
-    # Virtual key codes found here: https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
+    forward_or_back_key = ''
+    left_or_right_key = ''
 
-    match action:
+    match forward_or_back:
+        case "forward":
+            forward_or_back_key = 'w'
         case "back":
-            key_code = 0x53
-        case "right":
-            key_code = 0x44
+            forward_or_back_key = 's'
+
+    match left_or_right:
         case "left":
-            key_code = 0x41
+            left_or_right_key = 'a'
+        case "right":
+            left_or_right_key = 'd'
 
-    # To simulate a key press, it's required to send a "KEYDOWN" and "KEYUP" function
-    win32api.PostMessage(hwnd, win32con.WM_KEYDOWN, key_code, 0)
+    # Ensure that the correct window is in focus
+    window = gw.getWindowsWithTitle("CrazyCattle3D (DEBUG)")[0]
+    if not window.isActive:
+        window.activate()
+    time.sleep(0.5)
+
+    if len(forward_or_back_key) > 0:
+        print(f"Pressing {forward_or_back_key} for {duration} seconds")
+        pydirectinput.keyDown(forward_or_back_key)
+    if len(left_or_right_key) > 0:
+        print(f"Pressing {left_or_right_key} for {duration} seconds")
+    
     time.sleep(duration)
-    win32api.PostMessage(hwnd, win32con.WM_KEYUP, key_code, 0)
-
-    print(f"Action: {action}\nKey Code: {key_code}\nDuration: {duration} seconds")
-
-def click(x, y, duration = 0.05):
-    hwnd = win32gui.FindWindow(None, "CrazyCattle3D (DEBUG)")
-    win32gui.SetForegroundWindow(hwnd)
-    time.sleep(0.1)
-
-    win32api.SetCursorPos((x, y))
-    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, x, y, 0)
-    time.sleep(duration)
-    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, x, y, 0)
+    pydirectinput.keyUp(forward_or_back_key)
+    pydirectinput.keyUp(left_or_right_key)
 
 def reset():
     exe_path = "bin\\CrazyCattle3D.exe"
@@ -86,18 +85,17 @@ def reset():
 
     # Select "New Game"
     print('Clicking "New Game"')
-    click(335,395)
+    pydirectinput.click(x = 335, y = 395)
     time.sleep(1)
 
     # Select "Ireland"
     print('Clicking "Ireland"')
-    click(75,285)
-    time.sleep(7) # May take longer to load on certain devices
+    pydirectinput.click(x= 75, y = 285)
+    time.sleep(5) # May take longer to load on certain devices
 
 if __name__ == "__main__":
     reset()
-    step("forward", 4)
+    step("forward", 3)
     step("back", 3)
-    step("left", 3)
     step("right", 3)
-    
+    step("left", 3)
