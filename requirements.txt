@@ -1,8 +1,2 @@
-mss
-pyautogui
-numpy
-Pillow
-gym
-stable-baselines3
-tensorboard
 pygetwindow
+pywin32

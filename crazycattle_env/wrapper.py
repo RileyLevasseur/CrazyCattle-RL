@@ -1,11 +1,48 @@
 # This file will capture and perform actions in the game - essentially a gym environment.
 
+# From what I was able to find, pywin32 is the best library for sending actions to the .exe file.
+# Rather than simulating key presses, it sends actions directly to the window.
+
 import subprocess
 import pygetwindow as gw
 import time
+import win32gui
+import win32api
+import win32con
 
-def step(action):
-    pass
+def step(action, duration = 0.05):
+    # Find the correct window
+    hwnd = win32gui.FindWindow(None, "CrazyCattle3D (DEBUG)")
+    win32gui.SetForegroundWindow(hwnd)
+    key_code = 0x57
+
+    # Send an event to the window corresponding to the given action
+    # Virtual key codes found here: https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
+
+    match action:
+        case "back":
+            key_code = 0x53
+        case "right":
+            key_code = 0x44
+        case "left":
+            key_code = 0x41
+
+    # To simulate a key press, it's required to send a "KEYDOWN" and "KEYUP" function
+    win32api.PostMessage(hwnd, win32con.WM_KEYDOWN, key_code, 0)
+    time.sleep(duration)
+    win32api.PostMessage(hwnd, win32con.WM_KEYUP, key_code, 0)
+
+    print(f"Action: {action}\nKey Code: {key_code}\nDuration: {duration} seconds")
+
+def click(x, y, duration = 0.05):
+    hwnd = win32gui.FindWindow(None, "CrazyCattle3D (DEBUG)")
+    win32gui.SetForegroundWindow(hwnd)
+    time.sleep(0.1)
+
+    win32api.SetCursorPos((x, y))
+    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, x, y, 0)
+    time.sleep(duration)
+    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, x, y, 0)
 
 def reset():
     exe_path = "bin\\CrazyCattle3D.exe"
@@ -47,5 +84,20 @@ def reset():
     print(f"Resizing window to {window_width}x{window_height}")
     window.resizeTo(window_width, window_height)
 
-    while True:
-        time.sleep(10)
+    # Select "New Game"
+    print('Clicking "New Game"')
+    click(335,395)
+    time.sleep(1)
+
+    # Select "Ireland"
+    print('Clicking "Ireland"')
+    click(75,285)
+    time.sleep(7) # May take longer to load on certain devices
+
+if __name__ == "__main__":
+    reset()
+    step("forward", 4)
+    step("back", 3)
+    step("left", 3)
+    step("right", 3)
+    
